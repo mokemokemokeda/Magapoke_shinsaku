@@ -1,31 +1,36 @@
-name: Weekly Scrape Ranking
+name: Weekly Manga Ranking
 
-on: 
+on:
   schedule:
-    - cron: '0 10 * * 1'  # 毎週実行
+    - cron: "0 6 * * 3"  # 毎週水曜 6:00 JST
   workflow_dispatch:
+
+permissions:
+  contents: write  # ← これを必ず追加！
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pandas openpyxl requests beautifulsoup4
+        run: pip install -r requirements.txt
 
-      - name: Run scraper script
+      - name: Run scraper
         run: python scrape_ranking.py
 
-      - name: Commit & push results
+      - name: Commit and push results
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add ranking_weekly.xlsx
-          git commit -m "Add ranking data for $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add weekly_ranking.xlsx
+          git commit -m "Update weekly ranking [$(date '+%Y-%m-%d')]" || echo "No changes to commit"
           git push
